@@ -69,18 +69,25 @@ function render(){
  const pills=document.getElementById('pills'); pills.innerHTML=''; FILTERS.forEach(([k,lk,n])=>{ const b=document.createElement('button'); b.className='pill'+(filter===k?' active':''); b.innerHTML=`${t[lk]} <small>${n}</small>`; b.onclick=()=>{filter=k; render();}; pills.appendChild(b); });
  const filtered=DATA.filter(matches);
  document.getElementById('showing').textContent=lang==='en'?`Showing ${filtered.length} · 42 collected (24 main weapons + 18 Phantom Edges) of the official 55`:`当前显示 ${filtered.length} 件 · 共收录 42 件（主武器 24 + 影之武装 18)，官方总数 55 件`;
- // sections
+ // sections: parent headings are headers only, cards live ONLY in subgroups, so no weapon renders twice
  let sec='';
- const secDefs=[['main',t.main,24],['single',t.single,9],['two',t.two,7],['dual',t.dual,8],['phantom',t.phantom,18],['destruction',t.destruction,5],['ranged',t.ranged,2],['martial',t.martial,5],['artifice',t.artifice,4],['summon',t.summon,2]];
- secDefs.forEach(([key,label,total])=>{
-   let items;
-   if(key==='main') items=filtered.filter(w=>w.slot==='main');
-   else if(key==='phantom') items=filtered.filter(w=>w.slot==='phantom');
-   else items=filtered.filter(w=>w.type===key);
+ const mainSubs=[['single',t.single,9],['two',t.two,7],['dual',t.dual,8]];
+ const phSubs=[['destruction',t.destruction,5],['ranged',t.ranged,2],['martial',t.martial,5],['artifice',t.artifice,4],['summon',t.summon,2]];
+ const showSub=(key,label,total)=>{
+   const items=filtered.filter(w=>w.type===key);
    if(!items.length) return;
-   const tag=key==='main'||key==='phantom'?'h2':'h3';
-   sec+=`<${tag}>${label} <small>${lang==='en'?`Showing ${items.length} / ${total}`:`显示 ${items.length} / ${total}`}</small></${tag}><div class="grid">${items.map(cardHTML).join('')}</div>`;
- });
+   sec+=`<h3>${label} <small>${lang==='en'?`Showing ${items.length} / ${total}`:`显示 ${items.length} / ${total}`}</small></h3><div class="grid">${items.map(cardHTML).join('')}</div>`;
+ };
+ const mainItems=filtered.filter(w=>w.slot==='main');
+ if(mainItems.length && (filter==='all'||filter==='main'||['single','two','dual'].includes(filter))){
+   if(filter==='all'||filter==='main') sec+=`<h2>${t.main} <small>${lang==='en'?`Showing ${mainItems.length} / 24`:`显示 ${mainItems.length} / 24`}</small></h2>`;
+   mainSubs.forEach(([k,l,tot])=>showSub(k,l,tot));
+ }
+ const phItems=filtered.filter(w=>w.slot==='phantom');
+ if(phItems.length && (filter==='all'||filter==='phantom'||['destruction','ranged','martial','artifice','summon'].includes(filter))){
+   if(filter==='all'||filter==='phantom') sec+=`<h2>${t.phantom} <small>${lang==='en'?`Showing ${phItems.length} / 18`:`显示 ${phItems.length} / 18`}</small></h2>`;
+   phSubs.forEach(([k,l,tot])=>showSub(k,l,tot));
+ }
  document.getElementById('sections').innerHTML=sec;
  document.getElementById('nyrH').textContent=t.nyr; document.getElementById('nyrP').textContent=t.nyrP; document.getElementById('nyrM').textContent=t.nyrM; document.getElementById('nyrP2').textContent=t.nyrP2;
  document.getElementById('missM').innerHTML=Array.from({length:6},(_,i)=>`<div class="placeholder"><div style="font-size:36px">?</div><div>${t.mw} · ${lang==='en'?'Unrevealed '+(i+1):'未公布 '+(i+1)}</div></div>`).join('');
